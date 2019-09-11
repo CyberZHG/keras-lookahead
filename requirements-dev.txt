@@ -5,3 +5,4 @@ tensorflow
 nose
 pycodestyle
 coverage
+keras-rectified-adam

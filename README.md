@@ -35,3 +35,12 @@ from keras_lookahead import Lookahead
 
 optimizer = Lookahead('adam', sync_period=5, slow_step=0.5)
 ```
+
+Custom optimizers can also be used:
+
+```python
+from keras_radam import RAdam
+from keras_lookahead import Lookahead
+
+optimizer = Lookahead(RAdam())
+```

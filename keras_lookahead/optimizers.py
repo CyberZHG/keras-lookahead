@@ -26,6 +26,14 @@ class Lookahead(keras.optimizers.Optimizer):
             self.sync_period = K.variable(sync_period, dtype='int64', name='sync_period')
             self.slow_step = K.variable(slow_step, name='slow_step')
 
+    @property
+    def lr(self):
+        return self.optimizer.lr
+
+    @lr.setter
+    def lr(self, lr):
+        self.optimizer.lr = lr
+
     def get_updates(self, loss, params):
         slow_params = {p.name: K.variable(K.get_value(p), name='sp_{}'.format(i)) for i, p in enumerate(params)}
         sync_cond = K.equal((self.optimizer.iterations + 1) % self.sync_period, 0)
@@ -62,3 +70,8 @@ class Lookahead(keras.optimizers.Optimizer):
         }
         base_config = super(Lookahead, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        optimizer = keras.optimizers.deserialize(config.pop('optimizer'))
+        return cls(optimizer, **config)

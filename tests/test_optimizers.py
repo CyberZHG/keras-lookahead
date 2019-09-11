@@ -3,8 +3,10 @@ import tempfile
 from unittest import TestCase
 
 import numpy as np
+from keras_radam import RAdam
 
-from keras_lookahead.backend import keras
+from keras_lookahead.backend import keras, TF_KERAS
+from keras_lookahead.backend import backend as K
 from keras_lookahead import Lookahead
 
 
@@ -42,6 +44,22 @@ class TestLookahead(TestCase):
         predicted = model.predict(x)
         self.assertLess(np.max(np.abs(predicted - y)), 1e-3)
 
+    def test_ranger(self):
+        model = self._init_model(Lookahead(RAdam()))
+        x, y, w = self._init_data(data_size=100000)
+        model.fit(x, y, epochs=5)
+
+        model_path = os.path.join(tempfile.gettempdir(), 'test_lookahead_%f.h5' % np.random.random())
+        model.save(model_path)
+        model: keras.models.Model = keras.models.load_model(model_path, custom_objects={
+            'RAdam': RAdam,
+            'Lookahead': Lookahead,
+        })
+
+        x, y, _ = self._init_data(data_size=100, w=w)
+        predicted = model.predict(x)
+        self.assertLess(np.max(np.abs(predicted - y)), 1e-3)
+
     def test_half(self):
         weight = np.random.standard_normal((5, 1))
         x, y, _ = self._init_data(data_size=320)
@@ -56,3 +74,13 @@ class TestLookahead(TestCase):
 
         half_step = (weight + original) * 0.5
         self.assertTrue(np.allclose(half_step, step_back, atol=1e-2))
+
+    def test_lr(self):
+        opt = Lookahead('adam')
+        K.set_value(opt.lr, 1e-4)
+        self.assertAlmostEqual(1e-4, K.get_value(opt.lr))
+        self.assertAlmostEqual(1e-4, K.get_value(opt.optimizer.lr))
+        if not TF_KERAS:
+            opt.lr = K.variable(1e-3)
+            self.assertAlmostEqual(1e-3, K.get_value(opt.lr))
+            self.assertAlmostEqual(1e-3, K.get_value(opt.optimizer.lr))
