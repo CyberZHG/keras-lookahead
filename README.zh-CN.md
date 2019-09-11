@@ -14,6 +14,8 @@
 
 \[[中文](https://github.com/CyberZHG/keras-lookahead/blob/master/README.zh-CN.md)|[English](https://github.com/CyberZHG/keras-lookahead/blob/master/README.md)\]
 
+[Lookahead优化机制](https://arxiv.org/pdf/1907.08610v1.pdf)的非官方实现。
+
 ## 安装
 
 ```bash
@@ -21,3 +23,15 @@ pip install keras-lookahead
 ```
 
 ## 使用
+
+参数：
+
+* `optimizer`: 原始优化器。
+* `sync_period`: 对应论文中的`k`，同步周期。
+* `slow_step`: 对应论文中的`α`，慢权重的更新幅度。
+
+```python
+from keras_lookahead import Lookahead
+
+optimizer = Lookahead('adam', sync_period=5, slow_step=0.5)
+```

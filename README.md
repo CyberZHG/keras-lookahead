@@ -14,6 +14,8 @@
 
 \[[中文](https://github.com/CyberZHG/keras-lookahead/blob/master/README.zh-CN.md)|[English](https://github.com/CyberZHG/keras-lookahead/blob/master/README.md)\]
 
+Unofficial implementation of the [lookahead mechanism](https://arxiv.org/pdf/1907.08610v1.pdf) for optimizers.
+
 ## Install
 
 ```bash
@@ -21,3 +23,15 @@ pip install keras-lookahead
 ```
 
 ## Usage
+
+Arguments:
+
+* `optimizer`: Original optimizer.
+* `sync_period`: the `k` in the paper. The synchronization period.
+* `slow_step`: the `α` in the paper. The step size of slow weights.
+
+```python
+from keras_lookahead import Lookahead
+
+optimizer = Lookahead('adam', sync_period=5, slow_step=0.5)
+```
