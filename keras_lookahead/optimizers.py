@@ -1,4 +1,4 @@
-from .backend import keras
+from .backend import keras, TF_KERAS
 from .backend import backend as K
 
 __all__ = ['Lookahead']
@@ -34,31 +34,52 @@ class Lookahead(keras.optimizers.Optimizer):
     def lr(self, lr):
         self.optimizer.lr = lr
 
+    @property
+    def iterations(self):
+        return self.optimizer.iterations
+
     def get_updates(self, loss, params):
-        slow_params = {p.name: K.variable(K.get_value(p), name='sp_{}'.format(i)) for i, p in enumerate(params)}
-        sync_cond = K.equal((self.optimizer.iterations + 1) % self.sync_period, 0)
-        original_update = getattr(K, 'update')
-        setattr(K, 'update', lambda x, new_x: (x, new_x))
-        self.updates = self.optimizer.get_updates(loss, params)
-        setattr(K, 'update', original_update)
-        slow_updates = []
-        for i, update in enumerate(self.updates):
-            if isinstance(update, tuple):
-                if update[0].name not in slow_params:
-                    self.updates[i] = K.update(update[0], update[1])
-                else:
-                    slow_param = slow_params[update[0].name]
-                    slow_param_t = slow_param + self.slow_step * (update[1] - slow_param)
-                    slow_updates.append(K.update(slow_param, K.switch(
-                        sync_cond,
-                        slow_param_t,
-                        slow_param,
-                    )))
-                    self.updates[i] = K.update(update[0], K.switch(
-                        sync_cond,
-                        slow_param_t,
-                        update[1],
-                    ))
+        sync_cond = K.equal((self.iterations + 1) % self.sync_period, 0)
+        if TF_KERAS:
+            slow_params = [K.variable(K.get_value(p), name='sp_{}'.format(i)) for i, p in enumerate(params)]
+            self.updates = self.optimizer.get_updates(loss, params)
+            slow_updates = []
+            for p, sp in zip(params, slow_params):
+                sp_t = sp + self.slow_step * (p - sp)
+                slow_updates.append(K.update(sp, K.switch(
+                    sync_cond,
+                    sp_t,
+                    sp,
+                )))
+                slow_updates.append(K.update_add(p, K.switch(
+                    sync_cond,
+                    sp_t - p,
+                    K.zeros_like(p),
+                )))
+        else:
+            slow_params = {p.name: K.variable(K.get_value(p), name='sp_{}'.format(i)) for i, p in enumerate(params)}
+            original_update = getattr(K, 'update')
+            setattr(K, 'update', lambda x, new_x: (x, new_x))
+            self.updates = self.optimizer.get_updates(loss, params)
+            setattr(K, 'update', original_update)
+            slow_updates = []
+            for i, update in enumerate(self.updates):
+                if isinstance(update, tuple):
+                    if update[0].name not in slow_params:
+                        self.updates[i] = K.update(update[0], update[1])
+                    else:
+                        slow_param = slow_params[update[0].name]
+                        slow_param_t = slow_param + self.slow_step * (update[1] - slow_param)
+                        slow_updates.append(K.update(slow_param, K.switch(
+                            sync_cond,
+                            slow_param_t,
+                            slow_param,
+                        )))
+                        self.updates[i] = K.update(update[0], K.switch(
+                            sync_cond,
+                            slow_param_t,
+                            update[1],
+                        ))
         self.updates += slow_updates
         return self.updates
 

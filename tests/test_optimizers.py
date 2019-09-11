@@ -62,13 +62,13 @@ class TestLookahead(TestCase):
 
     def test_half(self):
         weight = np.random.standard_normal((5, 1))
-        x, y, _ = self._init_data(data_size=320)
+        x, y, _ = self._init_data(data_size=3200)
 
         model = self._init_model('adam', w=weight)
         model.fit(x, y, batch_size=32)
         original = model.get_weights()[0]
 
-        model = self._init_model(Lookahead('adam', sync_period=10, slow_step=0.5), w=weight)
+        model = self._init_model(Lookahead('adam', sync_period=100, slow_step=0.5), w=weight)
         model.fit(x, y, batch_size=32)
         step_back = model.get_weights()[0]
 
