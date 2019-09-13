@@ -84,3 +84,14 @@ class TestLookahead(TestCase):
             opt.lr = K.variable(1e-3)
             self.assertAlmostEqual(1e-3, K.get_value(opt.lr))
             self.assertAlmostEqual(1e-3, K.get_value(opt.optimizer.lr))
+
+    def test_update_sub(self):
+        if not TF_KERAS:
+            from .optimizers import Adam
+            model = self._init_model(Lookahead(Adam()))
+            x, y, w = self._init_data(data_size=100000)
+            model.fit(x, y, epochs=5)
+
+            x, y, _ = self._init_data(data_size=100, w=w)
+            predicted = model.predict(x)
+            self.assertLess(np.max(np.abs(predicted - y)), 1e-3)

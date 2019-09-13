@@ -58,27 +58,37 @@ class Lookahead(keras.optimizers.Optimizer):
                 )))
         else:
             slow_params = {p.name: K.variable(K.get_value(p), name='sp_{}'.format(i)) for i, p in enumerate(params)}
-            original_update = getattr(K, 'update')
-            setattr(K, 'update', lambda x, new_x: (x, new_x))
+            update_names = ['update', 'update_add', 'update_sub']
+            original_updates = [getattr(K, name) for name in update_names]
+            setattr(K, 'update', lambda x, new_x: ('update', x, new_x))
+            setattr(K, 'update_add', lambda x, new_x: ('update_add', x, new_x))
+            setattr(K, 'update_sub', lambda x, new_x: ('update_sub', x, new_x))
             self.updates = self.optimizer.get_updates(loss, params)
-            setattr(K, 'update', original_update)
+            for name, original_update in zip(update_names, original_updates):
+                setattr(K, name, original_update)
             slow_updates = []
             for i, update in enumerate(self.updates):
                 if isinstance(update, tuple):
-                    if update[0].name not in slow_params:
-                        self.updates[i] = K.update(update[0], update[1])
+                    name, x, new_x, adjusted = update + (update[-1],)
+                    update_func = getattr(K, name)
+                    if name == 'update_add':
+                        adjusted = x + new_x
+                    if name == 'update_sub':
+                        adjusted = x - new_x
+                    if x.name not in slow_params:
+                        self.updates[i] = update_func(x, new_x)
                     else:
-                        slow_param = slow_params[update[0].name]
-                        slow_param_t = slow_param + self.slow_step * (update[1] - slow_param)
+                        slow_param = slow_params[x.name]
+                        slow_param_t = slow_param + self.slow_step * (adjusted - slow_param)
                         slow_updates.append(K.update(slow_param, K.switch(
                             sync_cond,
                             slow_param_t,
                             slow_param,
                         )))
-                        self.updates[i] = K.update(update[0], K.switch(
+                        self.updates[i] = K.update(x, K.switch(
                             sync_cond,
                             slow_param_t,
-                            update[1],
+                            adjusted,
                         ))
             slow_params = list(slow_params.values())
         self.updates += slow_updates
