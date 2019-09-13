@@ -80,7 +80,9 @@ class Lookahead(keras.optimizers.Optimizer):
                             slow_param_t,
                             update[1],
                         ))
+            slow_params = list(slow_params.values())
         self.updates += slow_updates
+        self.weights = self.optimizer.weights + slow_params
         return self.updates
 
     def get_config(self):
