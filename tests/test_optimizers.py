@@ -95,3 +95,27 @@ class TestLookahead(TestCase):
             x, y, _ = self._init_data(data_size=100, w=w)
             predicted = model.predict(x)
             self.assertLess(np.max(np.abs(predicted - y)), 1e-3)
+
+    def test_consistent(self):
+        if not TF_KERAS:
+            return
+        weight = np.random.standard_normal((5, 1))
+        x, y, _ = self._init_data(data_size=3200)
+
+        model = self._init_model(Lookahead('adam', sync_period=10, slow_step=0.5), w=weight)
+        model.fit(x, y, batch_size=32, epochs=2, shuffle=False)
+        self.assertEqual(200, K.get_value(model.optimizer.iterations))
+        original = model.get_weights()[0]
+
+        model = self._init_model(Lookahead('adam', sync_period=10, slow_step=0.5), w=weight)
+        model.fit(x, y, batch_size=32, shuffle=False)
+        model_path = os.path.join(tempfile.gettempdir(), 'test_lookahead_%f.h5' % np.random.random())
+        model.save(model_path)
+        model: keras.models.Model = keras.models.load_model(model_path, custom_objects={
+            'RAdam': RAdam,
+            'Lookahead': Lookahead,
+        })
+        model.fit(x, y, batch_size=32, shuffle=False)
+        loaded = model.get_weights()[0]
+
+        self.assertTrue(np.allclose(original, loaded, atol=1e-6))
