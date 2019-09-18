@@ -8,7 +8,7 @@ class Adam(keras.optimizers.Optimizer):
         super(Adam, self).__init__(**kwargs)
         with K.name_scope(self.__class__.__name__):
             self.iterations = K.variable(0, dtype='int64', name='iterations')
-            self.lr = K.variable(lr, name='lr')
+            self.learning_rate = K.variable(lr, name='lr')
             self.beta_1 = K.variable(beta_1, name='beta_1')
             self.beta_2 = K.variable(beta_2, name='beta_2')
         self.epsilon = K.epsilon()
@@ -18,7 +18,7 @@ class Adam(keras.optimizers.Optimizer):
         self.updates = [K.update_add(self.iterations, 1)]
 
         t = K.cast(self.iterations, K.floatx()) + 1
-        lr_t = self.lr * (K.sqrt(1. - K.pow(self.beta_2, t)) / (1. - K.pow(self.beta_1, t)))
+        lr_t = self.learning_rate * (K.sqrt(1. - K.pow(self.beta_2, t)) / (1. - K.pow(self.beta_1, t)))
 
         ms = [K.zeros(K.int_shape(p), dtype=K.dtype(p)) for p in params]
         vs = [K.zeros(K.int_shape(p), dtype=K.dtype(p)) for p in params]

@@ -22,6 +22,10 @@
 pip install keras-lookahead
 ```
 
+## 外部链接
+
+- [tensorflow/addons:LookAhead](https://github.com/tensorflow/addons/blob/master/tensorflow_addons/optimizers/lookahead.py)
+
 ## 使用
 
 参数：

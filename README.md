@@ -22,6 +22,10 @@ Unofficial implementation of the [lookahead mechanism](https://arxiv.org/pdf/190
 pip install keras-lookahead
 ```
 
+## External Links
+
+- [tensorflow/addons:LookAhead](https://github.com/tensorflow/addons/blob/master/tensorflow_addons/optimizers/lookahead.py)
+
 ## Usage
 
 Arguments:

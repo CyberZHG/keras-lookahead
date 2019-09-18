@@ -61,22 +61,23 @@ class TestLookahead(TestCase):
         self.assertLess(np.max(np.abs(predicted - y)), 1e-3)
 
     def test_half(self):
-        weight = np.random.standard_normal((5, 1))
-        x, y, _ = self._init_data(data_size=3200)
+        if TF_KERAS:
+            weight = np.random.standard_normal((5, 1))
+            x, y, _ = self._init_data(data_size=3200)
 
-        model = self._init_model('adam', w=weight)
-        model.fit(x, y, batch_size=32)
-        original = model.get_weights()[0]
+            model = self._init_model('adam', w=weight)
+            model.fit(x, y, batch_size=32)
+            original = model.get_weights()[0]
 
-        model = self._init_model(Lookahead('adam', sync_period=100, slow_step=0.5), w=weight)
-        model.fit(x, y, batch_size=32)
-        step_back = model.get_weights()[0]
+            model = self._init_model(Lookahead('adam', sync_period=100, slow_step=0.5), w=weight)
+            model.fit(x, y, batch_size=32)
+            step_back = model.get_weights()[0]
 
-        half_step = (weight + original) * 0.5
-        self.assertTrue(np.allclose(half_step, step_back, atol=1e-2))
+            half_step = (weight + original) * 0.5
+            self.assertTrue(np.allclose(half_step, step_back, atol=1e-2), (weight, original, step_back, half_step))
 
     def test_lr(self):
-        opt = Lookahead('adam')
+        opt = Lookahead(RAdam())
         K.set_value(opt.lr, 1e-4)
         self.assertAlmostEqual(1e-4, K.get_value(opt.lr))
         self.assertAlmostEqual(1e-4, K.get_value(opt.optimizer.lr))
@@ -118,4 +119,4 @@ class TestLookahead(TestCase):
         model.fit(x, y, batch_size=32, shuffle=False)
         loaded = model.get_weights()[0]
 
-        self.assertTrue(np.allclose(original, loaded, atol=1e-6))
+        self.assertTrue(np.allclose(original, loaded, atol=1e-4), (original, loaded))

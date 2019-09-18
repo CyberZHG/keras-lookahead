@@ -35,11 +35,19 @@ class Lookahead(keras.optimizers.Optimizer):
         self.optimizer.lr = lr
 
     @property
+    def learning_rate(self):
+        return self.optimizer.learning_rate
+
+    @learning_rate.setter
+    def learning_rate(self, learning_rate):
+        self.optimizer.learning_rate = learning_rate
+
+    @property
     def iterations(self):
         return self.optimizer.iterations
 
     def get_updates(self, loss, params):
-        sync_cond = K.equal((self.iterations + 1) % self.sync_period, 0)
+        sync_cond = K.equal((self.iterations + 1) // self.sync_period * self.sync_period, (self.iterations + 1))
         if TF_KERAS:
             slow_params = [K.variable(K.get_value(p), name='sp_{}'.format(i)) for i, p in enumerate(params)]
             self.updates = self.optimizer.get_updates(loss, params)
