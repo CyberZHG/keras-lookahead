@@ -97,6 +97,8 @@ class TestLookahead(TestCase):
             self.assertAlmostEqual(1e-3, K.get_value(opt.optimizer.learning_rate))
         except AttributeError:
             pass
+        except ValueError:
+            pass
 
     def test_update_sub(self):
         if not TF_KERAS:
