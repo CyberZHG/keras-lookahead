@@ -25,15 +25,6 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
-from setuptools import setup, find_packages
-
-with codecs.open('README.md', 'r', 'utf8') as reader:
-    long_description = reader.read()
-
-
-with codecs.open('requirements.txt', 'r', 'utf8') as reader:
-    install_requires = list(map(lambda x: x.strip(), reader.readlines()))
-
 
 setup(
     name='keras-lookahead',
