@@ -86,6 +86,18 @@ class TestLookahead(TestCase):
             self.assertAlmostEqual(1e-3, K.get_value(opt.lr))
             self.assertAlmostEqual(1e-3, K.get_value(opt.optimizer.lr))
 
+    def test_learning_rate(self):
+        try:
+            opt = Lookahead(RAdam())
+            K.set_value(opt.learning_rate, 1e-4)
+            self.assertAlmostEqual(1e-4, K.get_value(opt.learning_rate))
+            self.assertAlmostEqual(1e-4, K.get_value(opt.optimizer.learning_rate))
+            opt.learning_rate = K.variable(1e-3)
+            self.assertAlmostEqual(1e-3, K.get_value(opt.learning_rate))
+            self.assertAlmostEqual(1e-3, K.get_value(opt.optimizer.learning_rate))
+        except AttributeError:
+            pass
+
     def test_update_sub(self):
         if not TF_KERAS:
             from .optimizers import Adam
