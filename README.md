@@ -1,25 +1,16 @@
 # Keras Lookahead
 
-[![Travis](https://travis-ci.org/CyberZHG/keras-lookahead.svg)](https://travis-ci.org/CyberZHG/keras-lookahead)
+[![Travis](https://travis-ci.com/CyberZHG/keras-lookahead.svg)](https://travis-ci.org/CyberZHG/keras-lookahead)
 [![Coverage](https://coveralls.io/repos/github/CyberZHG/keras-lookahead/badge.svg?branch=master)](https://coveralls.io/github/CyberZHG/keras-lookahead)
-[![Version](https://img.shields.io/pypi/v/keras-lookahead.svg)](https://pypi.org/project/keras-lookahead/)
-![Downloads](https://img.shields.io/pypi/dm/keras-lookahead.svg)
-![License](https://img.shields.io/pypi/l/keras-lookahead.svg)
 
-![](https://img.shields.io/badge/keras-tensorflow-blue.svg)
-![](https://img.shields.io/badge/keras-theano-blue.svg)
-![](https://img.shields.io/badge/keras-tf.keras-blue.svg)
-![](https://img.shields.io/badge/keras-tf.keras/eager-blue.svg)
-![](https://img.shields.io/badge/keras-tf.keras/2.0_beta-blue.svg)
-
-\[[中文](https://github.com/CyberZHG/keras-lookahead/blob/master/README.zh-CN.md)|[English](https://github.com/CyberZHG/keras-lookahead/blob/master/README.md)\]
+**This repo is outdated and will no longer be maintained.**
 
 Unofficial implementation of the [lookahead mechanism](https://arxiv.org/pdf/1907.08610v1.pdf) for optimizers.
 
 ## Install
 
 ```bash
-pip install keras-lookahead
+pip install git+https://github.com/cyberzhg/keras-lookahead.git
 ```
 
 ## External Links
